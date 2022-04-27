@@ -6,4 +6,4 @@ example:
 ```
 transfer mysql data to yaml file.
 
-Notice: `-table` value not to enter spaces.Wrong enter `-table=user, order`
+Notice: `-table` value not to input spaces. Wrong input `-table=user, order`
