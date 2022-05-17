@@ -59,10 +59,11 @@ func TableData(db *sql.DB, sql string) ([]map[string]interface{}, error) {
 func relationSql(tName []string, sql string) []string {
 	resSql := make([]string, 0, len(tName))
 	// get first 'from' index
-	fromIndex := strings.Index(sql, "from")
+	indexSql := strings.ToLower(sql)
+	fromIndex := strings.Index(indexSql, "from")
 	suffixSql := sql[fromIndex:]
 	for _, v := range tName {
-		resSql = append(resSql, "select "+v+".* "+suffixSql)
+		resSql = append(resSql, "select "+"distinct "+v+".* "+suffixSql)
 	}
 	return resSql
 
@@ -72,7 +73,7 @@ func DoSql(db *sql.DB, t TableList, s SqlList, gLimit string) {
 	// table flag
 	if len(t) != 0 {
 		for _, v := range t {
-			bufSql := fmt.Sprintf("select * from %s", v)
+			bufSql := fmt.Sprintf("select * from `%s`", v)
 			if gLimit != "" {
 				bufSql = fmt.Sprintf("%s %s", bufSql, gLimit)
 			}
@@ -88,22 +89,25 @@ func DoSql(db *sql.DB, t TableList, s SqlList, gLimit string) {
 		//key is table name, value is sql
 		for k, v := range s {
 			bufK := strings.Split(k, ",")
-			if len(bufK) >= 2 {
-				l := relationSql(bufK, v)
-				for index, val := range l {
-					data, err := TableData(db, val)
-					if err != nil {
-						panic(err)
-					}
-					CreateYaml(data, bufK[index]+".yaml")
+			//if len(bufK) >= 2 {
+			//	l := relationSql(bufK, v)
+			//	for index, val := range l {
+			//		data, err := TableData(db, val)
+			//		if err != nil {
+			//			panic(err)
+			//		}
+			//		CreateYaml(data, bufK[index]+".yaml")
+			//	}
+			//	return
+			//}
+			l := relationSql(bufK, v)
+			for index, val := range l {
+				data, err := TableData(db, val)
+				if err != nil {
+					panic(err)
 				}
-				return
+				CreateYaml(data, bufK[index]+".yaml")
 			}
-			data, err := TableData(db, v)
-			if err != nil {
-				panic(err)
-			}
-			CreateYaml(data, k+".yaml")
 		}
 	}
 }
